@@ -1,0 +1,26 @@
+html, body {
+  background-color: #dfe7ee;
+  margin: 0;
+}
+
+#app {
+  display: grid;
+  grid-template-rows: 50px;
+  grid-template-columns: 100%;
+}
+
+#toolbar {
+  background-color: #3367d6;
+  grid-row: 1;
+}
+
+#history {
+  grid-row: 2;
+  padding: 1em;
+}
+
+#list {
+  max-width: 1200px;
+  min-width: 500px;
+  margin: auto;
+}
