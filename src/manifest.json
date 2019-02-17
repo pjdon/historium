@@ -6,8 +6,8 @@
   "description": "Extended history functionality",
 
   "icons": {
-    "48": "icon-48.png",
-    "96": "icon-96.png"
+    "48": "icon/icon-48.png",
+    "96": "icon/icon-96.png"
   },
 
   "permissions" : [
@@ -15,7 +15,7 @@
   ],
 
   "browser_action": {
-    "default_icon": "icon-32.png",
+    "default_icon": "icon/icon-32.png",
     "default_title": "Historium"
   },
 
