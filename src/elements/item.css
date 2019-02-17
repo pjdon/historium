@@ -1,0 +1,48 @@
+#item {
+  height: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size-adjust: 0.43;
+
+  background-color: white;
+}
+
+#content {
+  align-items: center;
+  display: flex;
+  padding: 1em;
+}
+
+#content input {
+  transform: translateY(-1px);
+}
+
+#datetime {
+  color: grey;
+  margin-left: 16px;
+}
+
+#info {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+#title {
+  color: black;
+   margin-left: 16px;
+   overflow: hidden;
+   text-decoration: none;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+   cursor: pointer;
+}
+
+#domain {
+  color: grey;
+  flex-shrink: 0;
+  margin-left: 16px;
+  margin-right: 16px;
+}
