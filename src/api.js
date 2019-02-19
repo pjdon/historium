@@ -105,3 +105,20 @@ function HistoryApi() {
     return groupVisits(visits);
   }
 }
+
+function ListApi(listElement, historyApi) {
+  /* Manages display of history results in `listElement` */
+  this.list = listElement;
+  this.history = historyApi;
+
+  this.addTemp = async function() {
+    // temporarily display the last three days of history
+    const visitGroups = await this.history.visitsByDay('', 1);
+    visitGroups.forEach(group => {
+      const element = document.createElement('h-group');
+      element.items = group;
+      this.list.appendChild(element);
+    });
+  }
+
+}
