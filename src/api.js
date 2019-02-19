@@ -1,6 +1,7 @@
 'use strict';
 
 function HistoryApi() {
+  /* Wrapper over browser.history.search that allows for retrieval of individual visitItem objects. */
 
   /* Currently no good method to stream history items by time period
   so this is the largest number (2^52) of results that the search will accept
@@ -11,11 +12,12 @@ function HistoryApi() {
   const domainFromURL = new RegExp(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n\?\=]+)/im);
 
   function getDateStartMs(date) {
+    /* Get the milliseconds-since-epoch at 12:00 AM (0:00) from `date` */
     return (new Date(date.getFullYear(), date.getMonth(), date.getDate())).getTime();
   }
 
   function dfcToMs(dfc = 0, end = false, base) {
-    /* Days-from-current-day to milliseconds since epoch */
+    /* Days-from-current-day to milliseconds-since-epoch */
     if (!(base instanceof Number)) base = new Date();
     const start = getDateStartMs(new Date()) - (msPerDay * dfc);
     if (end) {
@@ -75,14 +77,12 @@ function HistoryApi() {
   }
 
   function groupVisits(visits) {
-    console.log(visits);
     const groups = [];
     let prevDay = -1;
     let group;
     visits.forEach(visit => {
       const date = visit.datetime = new Date(visit.datetime);
       const day = date.getDate();
-      console.log(prevDay, day, date);
 
       if (day != prevDay) {
         if (group) groups.push(group);
