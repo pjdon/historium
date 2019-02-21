@@ -1,0 +1,9 @@
+div {
+  background-color: lavender;
+  border: 1px solid #00000010;
+  padding: 1em;
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px #00000040;
+  color: blue;
+  margin: 1em;
+}
