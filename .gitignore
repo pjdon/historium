@@ -1,2 +1,3 @@
 legacy
-testdata
+src/proto/data
+notes.md
