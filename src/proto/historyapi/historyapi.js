@@ -1,6 +1,9 @@
-'use strict';
+/*
+API that can get visits from history items.
+Not needed for Historium but could be used for Historian which will have expandable history groups
+*/
 
-function HistoryApi() {
+function HistoryAPI() {
   /* Wrapper over browser.history.search that allows for retrieval of individual visitItem objects. */
 
   /* Currently no good method to stream history items by time period
@@ -104,21 +107,4 @@ function HistoryApi() {
     visits.sort(sortByDateDesc);
     return groupVisits(visits);
   }
-}
-
-function ListApi(listElement, historyApi) {
-  /* Manages display of history results in `listElement` */
-  this.list = listElement;
-  this.history = historyApi;
-
-  this.addTemp = async function() {
-    // temporarily display the last three days of history
-    const visitGroups = await this.history.visitsByDay('', 1);
-    visitGroups.forEach(group => {
-      const element = document.createElement('h-group');
-      element.items = group;
-      this.list.appendChild(element);
-    });
-  }
-
 }
