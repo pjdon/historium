@@ -1,4 +1,8 @@
+'use strict';
+
+
 (function () {
+  /* Web component custom element for displaying HistoryItem as a card */
   const styleTemplate = document.createElement('template');
   styleTemplate.innerHTML = (() => {
     return `
@@ -145,7 +149,7 @@
   <div id='content'>
     <input id='check' type='checkbox'>
     <span id='timestamp'></span>
-    <img id='favicon' src='twitter.png'></img>
+    <img id='favicon'></img>
     <div id='info'>
       <a id='title'></a>
       <span id='domain'></span>
@@ -155,13 +159,16 @@
   </div>
   `;
 
+  const tempFaviconPath = "favicon.png";
+
+  /* Used to format header title */
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   const startAttrName = 'group-start';
   const domainFromURL = new RegExp(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n\?\=]+)/im);
 
-  customElements.define('h-visit', class extends HTMLElement {
+  customElements.define('h-entry', class extends HTMLElement {
 
     urlToDomain(url) {
       const result = url.match(domainFromURL);
@@ -199,6 +206,7 @@
         const timestamp = this.shadowRoot.getElementById('timestamp');
         const title = this.shadowRoot.getElementById('title');
         const domain = this.shadowRoot.getElementById('domain');
+        const favicon = this.shadowRoot.getElementById('favicon');
 
         timestamp.textContent = this.timestampFromDate(visitDatetime);
 
@@ -219,6 +227,9 @@
           headerTitle.textContent = this.headerTitleFromDate(visitDatetime);
         }
 
+        // TODO: get favicon from db using domain
+        favicon.src = tempFaviconPath;
+
       } else {
         console.error('Missing `config` property')
       }
@@ -226,65 +237,6 @@
   });
 
 })();
-
-const history = [
-  {
-    config: {
-      url: "https://stackoverflow.com/questions/11828270/how-to-exit-the-vim-editor",
-      title: "vi - How to exit the Vim editor? - Stack Overflow",
-      datetime: (new Date(2019, 2, 20, 20, 32)).getTime()
-    },
-    attributes: ['group-start']
-  },
-  {
-    config: {
-      url: "https://www.backblaze.com/blog/how-reliable-are-ssds/",
-      title: "Are Solid State Drives / SSDs More Reliable Than HDDs?",
-      datetime: (new Date(2019, 2, 20, 20, 20)).getTime()
-    },
-    attributes: []
-  },
-  {
-    config: {
-      url: "https://github.com/GENIVI/ramses",
-      title: "GitHub - GENIVI/ramses: A distributed system for rendering 3D content with focus on bandwidth and resource efficiency",
-      datetime: (new Date(2019, 2, 20, 19, 3)).getTime()
-    },
-    attributes: ['group-end']
-  },
-  {
-    config: {
-      url: "https://www.theatlantic.com/science/archive/2019/02/dna-books-artifacts/582814/",
-      title: "The Lab Discovering DNA in Old Books - The Atlantic",
-      datetime: (new Date(2019, 2, 19, 15, 15)).getTime()
-    },
-    attributes: ['group-start', 'group-end']
-  },
-]
-
-function addVisit(target, record) {
-  const element = document.createElement('h-visit');
-  element.config = record.config;
-  for (let attr of record.attributes) {
-    element.setAttribute(attr, '');
-  }
-  target.appendChild(element);
-}
-
-function setup() {
-  const catalog = document.getElementById('catalog');
-
-  for (let record of history) {
-    addVisit(catalog, record);
-  }
-
-}
-
-setup();
-
-
-
-
 
 
 
