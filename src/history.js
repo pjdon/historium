@@ -7,34 +7,43 @@ function HistoryVisitFinder() {
   This is a temporary workaround to the lack of a method for streaming large
   number of results. */
   const maxResultsCeiling = Math.pow(2, 52);
-  const msPerDay = 86400000;
+  const defaultQuery = { text: '', maxResults: maxResultsCeiling };
+  const urlSplitProtocolRest = new RegExp(/(^[^:\/]+:\/\/)(.+)/i);
+  const startAttrName = 'group-start';
+  const endAttrName = 'group-end';
 
-  function getLocalDateMsBounds(date) {
-    /* Get the start and end time in milliseconds-since-epoch for the local day
-    of `date` */
-
-    const localDateStart = (new Date(date.getFullYear(), date.getMonth(),
-      date.getDate())).getTime();
-    return [localDateStart, localDateStart + msPerDay - 1];
+  function getUrlAfterProtocol(url) {
+    /* Get the part of the URL after the protocol */
+    return url.match(urlSplitProtocolRest)[2];
   }
 
-  this.searchVisits = async function (text, startTime, endTime) {
+  this.searchVisitsRaw = async function (query) {
     /*
     Find objects representing webpage history visits whose domain and/or url
     contain `text` and whose visit times are within the inclusive range of
-    `startTime` to `endTime`.
+    `startTime` to `endTime` attributes in `query`.
 
     Returns an array of objects with the associated HistoryItem and VisitItem
     attributes:
-      { url, title, id, referringVisitId, transition, visitTime }
+      { url:String, title:String, id:String, referringVisitId:String, transition:TransitionType, visitTime:Number }
     */
+
+    query = Object.assign(
+      defaultQuery,
+      {
+        startTime: (new Date()).addDay(-1),
+        endTime: Date.now()
+      },
+      query
+    );
+
     const results = [];
-    const query = { text, startTime, endTime, maxResults: maxResultsCeiling };
     const historyItemArray = await browser.history.search(query);
     const expected = [];
 
     const filterVisitsCallback = function (visit) {
-      return visit.visitTime <= endTime && visit.visitTime >= startTime;
+      return visit.visitTime <= query.endTime
+        && visit.visitTime >= query.startTime;
     }
 
     /* Store the visits of each HistoryItem that fall between `startTime` and
@@ -75,18 +84,66 @@ function HistoryVisitFinder() {
     });
   }
 
-  this.getVisitsOnDate = async function (text, date) {
+  function filterVisit(value, index, array) {
+    /* Return whether the visit should be rendered as an entry */
+    if (index >= array.length - 1) {
+      /* Exclude reloads */
+      if (value.transition == 'reload') {
+        return false;
+      }
+      /* Exclude when next item has the same address except for the protocol */
+      if (getUrlAfterProtocol(value.url)
+        == getUrlAfterProtocol(array[index + 1].url)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function mapVisit(value, index, array) {
+    /* Convert visit object into an entry configuration */
+    return {
+      url: value.url, title: value.title, visitTime: new Date(value.visitTime)
+    };
+  }
+
+  this.processVisits = function (visitArray) {
+    /* Exclude redundant visits and convert them to entry configurations */
+    /* Purpose is to reduce the memory footprint of each object since they
+    will be stored in memory when the element is removed */
+    const processed = visitArray.filter(filterVisit).map(mapVisit);
+    processed[0].groupStart = true;
+    processed[processed.length - 1].groupEnd = true;
+    return processed
+  }
+
+  this.searchVisits = async function (query) {
+    /*
+    Find objects representing webpage history visits whose domain and/or url
+    contain `text` and whose visit times are within the inclusive range of
+    `startTime` to `endTime` attributes in `query`.
+
+    Returns an array of objects used to render the visit as an h-visit element.
+    {
+      attributes: [:String,],
+      config: {url:String, title:String, visitTime:Date}
+    }
+
+    */
+    const visitArray = await this.searchVisitsRaw(query);
+
+    return this.processVisits(visitArray);
+  }
+
+  this.getVisitsOnDate = async function (date, query = {}) {
     /*
     Find objects representing webpage history visits whose domain and/or url
     contain `text` and whose visit times are on the same day as `date`.
-
-    Returns an array of objects with the associated HistoryItem and VisitItem
-    attributes:
-      { url, title, id, referringVisitId, transition, visitTime }
     */
-    const [startTime, endTime] = getLocalDateMsBounds(date);
+    if (date == null) date = new Date();
+    [query.startTime, query.endTime] = date.localMsBounds();
 
-    return await this.searchVisits(text, startTime, endTime);
+    return await this.searchVisits(query);
 
   }
 }
