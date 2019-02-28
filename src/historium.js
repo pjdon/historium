@@ -1,7 +1,4 @@
-const target = document.getElementById('history');
-
-const history = new HistoryApi();
-const list = new ListApi(target, history);
-
-list.addTemp();
-
+const historyFinder = new HistoryVisitFinder();
+const targetElement = document.getElementById('history');
+const catalogManager = new CatalogManager(targetElement, historyFinder);
+catalogManager.setup();
