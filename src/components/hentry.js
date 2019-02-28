@@ -14,7 +14,7 @@
       --color-button: #5f6368;
       --color-tint-subtle: #00000025;
       --edge-exterior: 20px;
-      --border-radius-edge: 5px 5px;
+      --border-radius-edge: 3px 3px;
       --box-shadow: #3c40434d 0 1px 2px 0, #3c404326 0 1px 3px 1px;
       --section-height: 50px;
       --header-border-width: 1px;
@@ -202,13 +202,13 @@
     connectedCallback() {
 
       if (this.config) {
-        const visitDatetime = new Date(this.config.datetime);
+        console.log(this.config);
         const timestamp = this.shadowRoot.getElementById('timestamp');
         const title = this.shadowRoot.getElementById('title');
         const domain = this.shadowRoot.getElementById('domain');
         const favicon = this.shadowRoot.getElementById('favicon');
 
-        timestamp.textContent = this.timestampFromDate(visitDatetime);
+        timestamp.textContent = this.timestampFromDate(this.config.visitTime);
 
         if (this.config.title) {
           title.textContent = this.config.title;
@@ -224,7 +224,8 @@
             headerTemplate.content.cloneNode(true)
           );
           const headerTitle = this.shadowRoot.getElementById('header-title');
-          headerTitle.textContent = this.headerTitleFromDate(visitDatetime);
+          headerTitle.textContent = this.headerTitleFromDate(
+            this.config.visitTime);
         }
 
         // TODO: get favicon from db using domain
