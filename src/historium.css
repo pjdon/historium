@@ -17,15 +17,22 @@ html, body {
   position: relative;
   width: 100%;
   height: 100%;
-  background-color: #687689;
+  background-color: #878e99;
   box-shadow: 0px 3px 7px #00000050;
 }
 
 #history {
   grid-row: 2 / 3;
   overflow: auto;
-  background-color: #dfe7ee;
+  background-color: #f0f0f0;
   padding: 0 20px;
+}
+
+#list {
+  min-width: 400px;
+  max-width: 1200px;
+  padding: 16px;
+  margin: auto;
 }
 
 .redder {

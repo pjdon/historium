@@ -1,4 +1,6 @@
-const historyFinder = new HistoryVisitFinder();
-const targetElement = document.getElementById('history');
-const catalogManager = new CatalogManager(targetElement, historyFinder);
-catalogManager.setup();
+const finder = new HistoryVisitFinder();
+const list = document.getElementById('list');
+const catalog = new CatalogManager(list, finder);
+
+catalog.setup();
+
