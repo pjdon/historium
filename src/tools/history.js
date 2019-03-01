@@ -9,8 +9,6 @@ function HistoryVisitFinder() {
   const maxResultsCeiling = Math.pow(2, 52);
   const defaultQuery = { text: '', maxResults: maxResultsCeiling };
   const urlSplitProtocolRest = new RegExp(/(^[^:\/]+:\/\/)(.+)/i);
-  const startAttrName = 'group-start';
-  const endAttrName = 'group-end';
 
   function getUrlAfterProtocol(url) {
     /* Get the part of the URL after the protocol */
@@ -79,14 +77,14 @@ function HistoryVisitFinder() {
 
     return await Promise.all(expected).then(() => {
       /* Sort results in reverse chronological order */
-      results.sort((a, b) => b.visitTime - a.visitTime);
+      // results.sort((a, b) => b.visitTime - a.visitTime);
       return results;
     });
   }
 
   function filterVisit(value, index, array) {
     /* Return whether the visit should be rendered as an entry */
-    if (index >= array.length - 1) {
+    if (index < array.length - 1) {
       /* Exclude reloads */
       if (value.transition == 'reload') {
         return false;
@@ -128,22 +126,8 @@ function HistoryVisitFinder() {
       attributes: [:String,],
       config: {url:String, title:String, visitTime:Date}
     }
-
     */
     const visitArray = await this.searchVisitsRaw(query);
-
     return this.processVisits(visitArray);
-  }
-
-  this.getVisitsOnDate = async function (date, query = {}) {
-    /*
-    Find objects representing webpage history visits whose domain and/or url
-    contain `text` and whose visit times are on the same day as `date`.
-    */
-    if (date == null) date = new Date();
-    [query.startTime, query.endTime] = date.localMsBounds();
-
-    return await this.searchVisits(query);
-
   }
 }

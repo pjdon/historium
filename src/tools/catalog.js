@@ -16,9 +16,11 @@ function CatalogManager(targetElement, historyVisitFinder) {
   }
 
   this.setup = async function() {
-    const visitConfigArray = await historyVisitFinder.getVisitsOnDate(new Date());
-    console.log(visitConfigArray);
-    visitConfigArray.forEach(this.addEntry);
+    const array = await historyVisitFinder.searchVisits(
+      {startTime:0, endTime:Date.now(), maxResults:50}
+    )
+
+    array.forEach(this.addEntry);
   }
 
 }
