@@ -1,9 +1,9 @@
 function Queue(initial=[]) {
   /* Wrapper over Array class to facilitate easier input/output of arrays.
   `push` and `unshift` expect array parameters while `shift` and `pop` expect
-  a parameter `n` representing the number of items to return from the queue.
+  a parameter `n` representing the number of items to return and remove from the queue.
   */
-  const data = initial;
+  const data = initial.splice();
 
   function push(items) {
     return data.push(...items);
@@ -23,5 +23,6 @@ function Queue(initial=[]) {
   this.shift = shift;
   this.pop = pop;
   this.get = () => data;
+  this.length = () => data.length;
 }
 
