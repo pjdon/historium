@@ -1,12 +1,26 @@
 table {
   width: 100%;
+  border-collapse: collapse;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  table-layout: fixed;
+}
+
+table > colgroup > col:nth-child(1),
+table > colgroup > col:nth-child(3) {
+  width: 200px;
 }
 
 th, td {
+  overflow: hidden;
+  white-space: nowrap;
   border-bottom: 1px solid #ddd;
   border-collapse: collapse;
   text-align: left;
   padding: 2px 8px;
+  word-wrap: break-word;
+  text-overflow: ellipsis;
 }
 
 th {

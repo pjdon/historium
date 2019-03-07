@@ -4,23 +4,27 @@
 
 <head>
   <meta charset='utf-8'>
-  <title>Historium - View and Search Browsing History</title>
+  <title>Historium - History Viewer</title>
   <link rel='stylesheet' href='historium.css' />
 </head>
 
 <body>
-  <div id='app'>
-    <div id='history'>
-      <div id='list'></div>
-    </div>
-    <div id='top'><div id='toolbar'></div></div>
-  </div>
+  <table>
+    <colgroup><col><col><col></colgroup>
+    <thead>
+      <tr>
+        <th>Local Visit Time</th>
+        <th>Title</th>
+        <th>Domain</th>
+      </tr>
+    </thead>
+    <tbody id='history'>
+
+    </tbody>
+  </table>
 </body>
-<script type="text/javascript" src="tools/pace.js"></script>
-<script type="text/javascript" src="tools/date.js"></script>
-<script type="text/javascript" src="tools/history.js"></script>
 <script type="text/javascript" src="tools/catalog.js"></script>
-<script type="text/javascript" src="components/hentry.js"></script>
+<script type="text/javascript" src="tools/history.js"></script>
 <script type="text/javascript" src="historium.js"></script>
 
 </html>

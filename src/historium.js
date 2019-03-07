@@ -1,6 +1,12 @@
+const table = document.getElementById('history');
 const finder = new HistoryVisitFinder();
-const list = document.getElementById('list');
-const catalog = new CatalogManager(list, finder);
+const streamer = new HistoryVisitStreamer();
+const display = new HistoryCatalog(table);
 
-catalog.setup();
+function addBlock(historyStreamer, historyDisplay) {
+  historyStreamer.getNext().then(visits => {
+    visits.forEach(row => historyDisplay.addRow(row));
+  });
+}
 
+setInterval(() => addBlock(streamer, display), 100);

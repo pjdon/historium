@@ -1,40 +1,32 @@
-html, body {
-  margin: 0;
-  height: 100%;
-}
-
-#app {
-  display: grid;
-  height: 100%;
-  grid-template-rows: 50px 1fr;
-}
-
-#top {
-  grid-row: 1 / 2;
-}
-
-#toolbar {
-  position: relative;
+table {
   width: 100%;
-  height: 100%;
-  background-color: #878e99;
-  box-shadow: 0px 3px 7px #00000050;
+  border-collapse: collapse;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  table-layout: fixed;
 }
 
-#history {
-  grid-row: 2 / 3;
-  overflow: auto;
-  background-color: #f0f0f0;
-  padding: 0 20px;
+table > colgroup > col:nth-child(1),
+table > colgroup > col:nth-child(3) {
+  width: 200px;
 }
 
-#list {
-  min-width: 400px;
-  max-width: 1200px;
-  padding: 16px;
-  margin: auto;
+th, td {
+  overflow: hidden;
+  white-space: nowrap;
+  border-bottom: 1px solid #ddd;
+  border-collapse: collapse;
+  text-align: left;
+  padding: 2px 8px;
+  word-wrap: break-word;
+  text-overflow: ellipsis;
 }
 
-.redder {
-  background-color: red !important;
+th {
+  background-color: rgb(54, 54, 54);
+  color: white;
+}
+tr:nth-child(even) {
+  background-color: #f2f2f2;
 }

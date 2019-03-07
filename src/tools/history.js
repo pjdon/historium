@@ -1,48 +1,50 @@
 'use strict';
 
 function HistoryVisitFinder() {
-
-  /* Largest value of `maxResults` property that is accepted by the `query`
-  argument of browser.history.search().
-  This is a temporary workaround to the lack of a method for streaming large
-  number of results. */
+  /* Largest value of `maxResults` property that is accepted by the `query` argument of browser.history.search().
+  Workaround for inability to ensure that all results are provided for a date range search without the significant overhead of multiple overlapping searches */
   const maxResultsCeiling = Math.pow(2, 52);
-  const defaultQuery = { text: '', maxResults: maxResultsCeiling };
-  const urlSplitProtocolRest = new RegExp(/(^[^:\/]+:\/\/)(.+)/i);
+  const defaultStartDatetime = new Date(0);
 
-  function getUrlAfterProtocol(url) {
-    /* Get the part of the URL after the protocol */
-    return url.match(urlSplitProtocolRest)[2];
-  }
-
-  this.searchVisitsRaw = async function (query) {
+  this.getVisitsData = async function ({
+    text = '', startDatetime = defaultStartDatetime, endDatetime = new Date(),
+    maxVisits
+  } = {}) {
     /*
     Find objects representing webpage history visits whose domain and/or url
-    contain `text` and whose visit times are within the inclusive range of
-    `startTime` to `endTime` attributes in `query`.
+    contain `text` and whose visit datetimes are within the inclusive range of
+    `startDatetimeMs` to `endDatetimeMs`.
 
     Returns an array of objects with the associated HistoryItem and VisitItem
-    attributes:
-      { url:String, title:String, id:String, referringVisitId:String, transition:TransitionType, visitTime:Number }
+    properties:
+      { url:String, title:String, datetime:Number, id:String, referringVisitId:String, transition:TransitionType, }
+
+    Returned array will be of length `maxVisits` at most, with fewer visits returned when fewer are provided by the API based on the query.
+
+    TODO: optimize visit search
+      * letting n = maxVisitCount
+      * when the visits for each item are being filtered by datetime, only
+        collect the visits that later than the nth latest visit
+        given that at least n visits have been collected
+      * this requires an extra sort when more than n visits have been collected
+      * optionally the nth latest visit and the start-datetime threshold can be
+        restablished at each HistoryItem iteration by maintaining a sorted structure
+
     */
 
-    query = Object.assign(
-      defaultQuery,
-      {
-        startTime: (new Date()).addDay(-1),
-        endTime: Date.now()
-      },
-      query
-    );
+    const query = {
+      text,
+      startTime: startDatetime.getTime(),
+      endTime: endDatetime.getTime(),
+      maxResults: maxVisits || maxResultsCeiling
+    };
 
-    const results = [];
+    const visitArray = [];
     const historyItemArray = await browser.history.search(query);
-    const expected = [];
+    const duePromises = [];
 
-    const filterVisitsCallback = function (visit) {
-      return visit.visitTime <= query.endTime
-        && visit.visitTime >= query.startTime;
-    }
+    const visitInDateRange = visit =>
+      visit.visitTime <= query.endTime && visit.visitTime >= query.startTime;
 
     /* Store the visits of each HistoryItem that fall between `startTime` and
     `endTime` */
@@ -50,22 +52,22 @@ function HistoryVisitFinder() {
       const url = historyItem.url;
       const title = historyItem.title;
 
-      const mapVisitsCallback = function (visit) {
+      const combineVisitProperties = function (visit) {
         return {
           url, title,
+          datetime: visit.visitTime,
           id: visit.visitId,
           referringVisitId: visit.referringVisitId,
           transition: visit.transition,
-          visitTime: visit.visitTime
         }
       }
 
-      expected.push(browser.history.getVisits({ url })
+      duePromises.push(browser.history.getVisits({ url })
         .then(visitItemArray => {
-          results.push(...(
+          visitArray.push(...(
             visitItemArray
-              .filter(filterVisitsCallback)
-              .map(mapVisitsCallback)
+              .filter(visitInDateRange)
+              .map(combineVisitProperties)
           ))
         })
         .catch(reason => {
@@ -75,59 +77,50 @@ function HistoryVisitFinder() {
       );
     }
 
-    return await Promise.all(expected).then(() => {
-      /* Sort results in reverse chronological order */
-      // results.sort((a, b) => b.visitTime - a.visitTime);
-      return results;
+    return await Promise.all(duePromises).then(() => {
+      visitArray.sort((a, b) => b.datetime - a.datetime);
+      /* If we are not expecting all (at most 2^52) results within a date range then only the first `maxVisits` visits are guaranteed to be sequential, since visits for HistoryItems can be outside of the specified date range */
+      if (maxVisits != maxResultsCeiling) {
+        return visitArray.slice(0, maxVisits);
+      } else {
+        return visitArray;
+      }
     });
   }
+}
 
-  function filterVisit(value, index, array) {
-    /* Return whether the visit should be rendered as an entry */
-    if (index < array.length - 1) {
-      /* Exclude reloads */
-      if (value.transition == 'reload') {
-        return false;
-      }
-      /* Exclude when next item has the same address except for the protocol */
-      if (getUrlAfterProtocol(value.url)
-        == getUrlAfterProtocol(array[index + 1].url)) {
-        return false;
-      }
-    }
-    return true;
-  }
 
-  function mapVisit(value, index, array) {
-    /* Convert visit object into an entry configuration */
-    return {
-      url: value.url, title: value.title, visitTime: new Date(value.visitTime)
-    };
-  }
+function HistoryVisitStreamer({
+  text = "", baseDatetime = (new Date()), defaultMaxVisits = 100
+} = {}) {
 
-  this.processVisits = function (visitArray) {
-    /* Exclude redundant visits and convert them to entry configurations */
-    /* Purpose is to reduce the memory footprint of each object since they
-    will be stored in memory when the element is removed */
-    const processed = visitArray.filter(filterVisit).map(mapVisit);
-    processed[0].groupStart = true;
-    processed[processed.length - 1].groupEnd = true;
-    return processed
-  }
+  const finder = new HistoryVisitFinder();
+  let reachedEnd = false;
+  /* TODO: is penalty for using Date vs int type cursor too high? */
+  let currentDatetime = baseDatetime;
 
-  this.searchVisits = async function (query) {
+  function getVisitsLastDatetime(visits) {
+    /* Get the last visit datetime from an array of HistoryVisitFinder visits objects */
     /*
-    Find objects representing webpage history visits whose domain and/or url
-    contain `text` and whose visit times are within the inclusive range of
-    `startTime` to `endTime` attributes in `query`.
-
-    Returns an array of objects used to render the visit as an h-visit element.
-    {
-      attributes: [:String,],
-      config: {url:String, title:String, visitTime:Date}
-    }
+    temp while using getvisitsdata
+    return new Date(visits[visits.length - 1].datetime.getTime() - 1);
     */
-    const visitArray = await this.searchVisitsRaw(query);
-    return this.processVisits(visitArray);
+    return new Date(visits[visits.length - 1].datetime - 1);
   }
+
+  this.getNext = async function (maxVisits = defaultMaxVisits) {
+    if (reachedEnd) return null;
+
+    const query = { text, maxVisits, endDatetime: currentDatetime };
+    const visitItems = await finder.getVisitsData(query);
+
+    if (visitItems.length > 0) {
+      currentDatetime = getVisitsLastDatetime(visitItems);
+      return visitItems;
+    } else {
+      reachedEnd = true;
+      return null;
+    }
+
+  };
 }

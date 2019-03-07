@@ -1,14 +1,24 @@
-function HistoryStreamer() {
-  const maxResults = Math.pow(2, 52);
+'use strict';
+
+/* Working sorted */
+
+function HistoryVisitStreamer() {
+  const maxResultsCeiling = Math.pow(2, 52);
+  const defaultStartDatetime = new Date(0);
 
   this.getVisits = async function ({
-    text = '', startDatetime = new Date(0), endDatetime = new Date()
+    text = '', startDatetime = defaultStartDatetime, endDatetime = new Date(),
+    maxVisits
   } = {}) {
     const query = {
-      text, maxResults,
+      text,
       startTime: startDatetime.getTime(),
       endTime: endDatetime.getTime()
     };
+
+    if (maxVisits == null) {
+      query.maxResults = maxResultsCeiling;
+    }
 
     const visitArray = [];
     const historyItemArray = await browser.history.search(query);
@@ -25,7 +35,8 @@ function HistoryStreamer() {
 
       const mapVisitsCallback = function (visit) {
         return {
-          url, title, datetime: visit.visitTime
+          url, title, datetime: visit.visitTime,
+          transition: visit.transi
         }
       }
 
@@ -45,17 +56,12 @@ function HistoryStreamer() {
     }
 
     return await Promise.all(duePromises).then(() => {
-      /* Sort results in reverse chronological order */
       visitArray.sort((a, b) => b.datetime - a.datetime);
-      // const errors = [];
-      // for (let i=1; i<visitArray.length; i++) {
-      //   if (visitArray[i].datetime > visitArray[i-1].datetime) {
-      //     errors.push([visitArray[i-1],visitArray[i]]);
-      //   }
-      // }
-      // console.log(errors.length);
-      // console.log(errors);
-      return visitArray;
+      if (maxVisits != null) {
+        return visitArray.slice(0,maxVisits);
+      } else {
+        return visitArray;
+      }
     });
   }
 }

@@ -1,0 +1,37 @@
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+#app {
+  height: 100%;
+}
+
+#app > section {
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+}
+
+#app > header {
+  box-shadow: 0px 3px 7px #00000050;
+}
+
+#toolbar {
+  height: 50px;
+  background-color: #878e99;
+  box-shadow: 0px 3px 7px #00000050;
+}
+
+#history {
+  flex: 2;
+  overflow: auto;
+  background-color: #f0f0f0;
+  padding: 20px;
+}
+
+#list {
+  min-width: 400px;
+  max-width: 1200px;
+  margin: auto;
+}
