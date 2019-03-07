@@ -166,7 +166,7 @@
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   const startAttrName = 'group-start';
-  const domainFromURL = new RegExp("(?:^[^:/]+://)?(?:www\.)?([^/]+)(?:.*$)");
+  const domainFromURL = new RegExp(/^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n\?\=]+)/im);
 
   customElements.define('h-entry', class extends HTMLElement {
 
