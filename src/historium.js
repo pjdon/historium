@@ -19,10 +19,21 @@ const RateLimited = function (callback, msRateLimit, limitedCallback, startLimit
 }
 
 const bufferDist = 200;
+
 function addBlock(historyStreamer, historyDisplay) {
   historyStreamer.getNext().then(visits => {
     visits.forEach(row => historyDisplay.addRow(row));
   });
 }
 
-setInterval(() => addBlock(streamer, display), 100);
+addBlock(streamer, display);
+
+const loadOnReachedEnd = RateLimited(
+  addBlock.bind(this, streamer, display), 500
+);
+
+window.addEventListener('scroll', event => {
+  if (window.scrollMaxY - event.pageY < bufferDist) {
+    loadOnReachedEnd();
+  }
+});
